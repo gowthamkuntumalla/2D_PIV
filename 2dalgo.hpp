@@ -35,9 +35,9 @@ int sd(const int row,const int col, Mat image,const int x,const int y)//standard
 double cor_coeff(Mat image1,Mat image2,int avg1,int avg2,const int row,const int col,const int x,const int y,int r1,int c1) // return correlation coefficient
 {
     double c=0;
-    for (int i=c1; i<col+c1; i++) //window of image1 starting at (0,0)
+    for (int i=c1; i<col; i++) //window of image1 starting at (0,0)
     {
-        for (int j=r1; j<row+r1; j++)
+        for (int j=r1; j<row; j++)
         {
             int a = (int)image1.at<uchar> (c1,r1);
             int b = (int)image2.at<uchar> (i+x,j+y);
@@ -87,18 +87,18 @@ void piv_2d(cv::Mat image1, cv::Mat image2)
 
             vector< vector<double> > cortable; // 2D array of correlation at various (x.y)
             cortable.resize(rows,vector<double>(cols,initial_value));//initializing the vector
-            avg1=avg(subrow,subcol,image1,c,r);//computing average of sub window1
-            sd1=sd(subrow,subcol,image1,c,r);//computing standard deviation of sub window
-            for(x=0; x<cols*.5; x++) // for accuracy, max displacement is N/4; N::window size(NxN)
+            avg1=avg(subrowr,subcol+c,image1,c,r);//computing average of sub window1
+            sd1=sd(subrow+r,subcol+c,image1,c,r);//computing standard deviation of sub window
+            for(x=0; x<cols*.75; x++) // for accuracy, max displacement is N/4; N::window size(NxN)
             {
-                for(y=0; y<rows*.5; y++)
+                for(y=0; y<rows*.75; y++)
                 {
-                    avg2=avg(subrow+c+y,subcol+r+x,image2,x,y);// only the second image subwindows are in iteration.
-                    sd2=sd(subrow+c+y,subcol+r+x,image2,x,y);
+                    avg2=avg(subrow+r+y,subcol+c+x,image2,x,y);// only the second image subwindows are in iteration.
+                    sd2=sd(subrow+r+y,subcol+c+x,image2,x,y);
                     //cout<<avg1<<"  "<<sd1<<"  "<<avg2<<"  "<<sd2<<endl;
                     if(sd1!=0&&sd2!=0)
                     {
-                        cortable[x][y]= cor_coeff(image1,image2,avg1,avg2,subrow,subcol,x,y,r,c)/(sd1*sd2)/(subrow*subcol);//normalized correlation coefficient
+                        cortable[x][y]= cor_coeff(image1,image2,avg1,avg2,subrow+r1,subcol+c1,x,y,r,c)/(sd1*sd2)/(subrow*subcol);//normalized correlation coefficient
                     }
                     else
                     {

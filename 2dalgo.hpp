@@ -72,46 +72,270 @@ void piv_2d(cv::Mat image1, cv::Mat image2)
     int initial_value = 0;
     int avg1 = 0, avg2=0;
     int sd1=0, sd2=0;
-    int rows = 64,cols = 64;// interrogation window size
+    int winrows = 64,wincols = 64;// interrogation window size
     int subrow=16,subcol=16;// sub matrix
     int x=0,y=0;//displacements
 
-    int row1= image1.rows,col1=image1.cols; //gets the rows and columns of image.
-    int row2= image2.rows,col2=image2.cols;
+    int totrow1= image1.rows,totcol1=image1.cols; //gets the rows and columns of image.
+    int totrow2= image2.rows,totcol2=image2.cols;
 
-    /******* Computing Averages START *******/
-    for(int c=0; c<col1-64; c++)
+    /******* Computing STARTS *******/
+    myfile.open ("data.txt");
+    for(int c=0; c<totcol1-wincols; c++)
     {
-        for(int r=0; r<row1-64; r++)
+        for(int r=0; r<totrow1-winrows; r++)
         {
 
             vector< vector<double> > cortable; // 2D array of correlation at various (x.y)
-            cortable.resize(rows,vector<double>(cols,initial_value));//initializing the vector
-            avg1=avg(subrowr,subcol+c,image1,c,r);//computing average of sub window1
+            cortable.resize(winrows,vector<double>(wincols,initial_value));//initializing the vector
+            avg1=avg(subrow+r,subcol+c,image1,c,r);//computing average of sub window1
             sd1=sd(subrow+r,subcol+c,image1,c,r);//computing standard deviation of sub window
-            for(x=0; x<cols*.75; x++) // for accuracy, max displacement is N/4; N::window size(NxN)
+
+    //assume image is greater than 200X200 pixel
+            if((c-32)>0&&(c+32)<totcol2)
             {
-                for(y=0; y<rows*.75; y++)
+                if((r-32)>0&&(r+32)<totrow2)
                 {
-                    avg2=avg(subrow+r+y,subcol+c+x,image2,x,y);// only the second image subwindows are in iteration.
-                    sd2=sd(subrow+r+y,subcol+c+x,image2,x,y);
-                    //cout<<avg1<<"  "<<sd1<<"  "<<avg2<<"  "<<sd2<<endl;
-                    if(sd1!=0&&sd2!=0)
+                    for(x=c-32; x<c+32; x+=2) // for accuracy, max displacement is N/4; N::window size(NxN)
                     {
-                        cortable[x][y]= cor_coeff(image1,image2,avg1,avg2,subrow+r1,subcol+c1,x,y,r,c)/(sd1*sd2)/(subrow*subcol);//normalized correlation coefficient
+                        for(y=r-32; y<r+32; y+=2)
+                        {
+                            avg2=avg(subrow+r+y,subcol+c+x,image2,x,y);// only the second image subwindows are in iteration.
+                            sd2=sd(subrow+r+y,subcol+c+x,image2,x,y);
+                            //cout<<avg1<<"  "<<sd1<<"  "<<avg2<<"  "<<sd2<<endl;
+                            if(sd1!=0&&sd2!=0)
+                            {
+                                cortable[x][y]= cor_coeff(image1,image2,avg1,avg2,subrow+r,subcol+c,x,y,r,c)/(sd1*sd2)/(subrow*subcol);//normalized correlation coefficient
+                            }
+                            else
+                            {
+                                cortable[x][y]= 0;
+                                cerr<<"zero SD"<<endl;
+                            }
+                            //cout<<cortable[x][y]<<endl;
+                        }
                     }
-                    else
+                    myfile << "Writing this to a file.\n";
+                    myfile << "max value = " <<max_coef(cortable)<<endl;
+                }
+                if((r-32)>0&&(r+32)>totrow2)
+                {
+                    for(x=c-32; x<c+32; x+=2) // for accuracy, max displacement is N/4; N::window size(NxN)
                     {
-                        cortable[x][y]= 0;
-                        cerr<<"zero SD"<<endl;
+                        for(y=totrow2-64; y<totrow2; y+=2)
+                        {
+                            avg2=avg(subrow+r+y,subcol+c+x,image2,x,y);// only the second image subwindows are in iteration.
+                            sd2=sd(subrow+r+y,subcol+c+x,image2,x,y);
+                            //cout<<avg1<<"  "<<sd1<<"  "<<avg2<<"  "<<sd2<<endl;
+                            if(sd1!=0&&sd2!=0)
+                            {
+                                cortable[x][y]= cor_coeff(image1,image2,avg1,avg2,subrow+r,subcol+c,x,y,r,c)/(sd1*sd2)/(subrow*subcol);//normalized correlation coefficient
+                            }
+                            else
+                            {
+                                cortable[x][y]= 0;
+                                cerr<<"zero SD"<<endl;
+                            }
+                            //cout<<cortable[x][y]<<endl;
+                        }
                     }
-                    //cout<<cortable[x][y]<<endl;
+                    myfile << "Writing this to a file.\n";
+                    myfile << "max value = " <<max_coef(cortable)<<endl;
+                }
+                if((r-32)<0&&(r+32)<totrow2)
+                {
+                    for(x=c-32; x<c+32; x+=2) // for accuracy, max displacement is N/4; N::window size(NxN)
+                    {
+                        for(y=0; y<64; y+=2)
+                        {
+                            avg2=avg(subrow+r+y,subcol+c+x,image2,x,y);// only the second image subwindows are in iteration.
+                            sd2=sd(subrow+r+y,subcol+c+x,image2,x,y);
+                            //cout<<avg1<<"  "<<sd1<<"  "<<avg2<<"  "<<sd2<<endl;
+                            if(sd1!=0&&sd2!=0)
+                            {
+                                cortable[x][y]= cor_coeff(image1,image2,avg1,avg2,subrow+r,subcol+c,x,y,r,c)/(sd1*sd2)/(subrow*subcol);//normalized correlation coefficient
+                            }
+                            else
+                            {
+                                cortable[x][y]= 0;
+                                cerr<<"zero SD"<<endl;
+                            }
+                            //cout<<cortable[x][y]<<endl;
+                        }
+                    }
+                    myfile << "Writing this to a file.\n";
+                    myfile << "max value = " <<max_coef(cortable)<<endl;
+                }
+                if((r-32)<0&&(r+32)>totrow2)
+                {
+                    cerr<<"too small image";
                 }
             }
-            myfile.open ("data.txt");
-            myfile << "Writing this to a file.\n";
-            myfile << "max value = " <<max_coef(cortable)<<endl;
-            // cout<<"max value = "<<max_coef(cortable);
+            if((c-32)>0&&(c+32)>totcol2)
+            {
+                if((r-32)>0&&(r+32)<totrow2)
+                {
+                    for(x=totcol2-64; x<totcol2; x+=2) // for accuracy, max displacement is N/4; N::window size(NxN)
+                    {
+                        for(y=r-32; y<r+32; y+=2)
+                        {
+                            avg2=avg(subrow+r+y,subcol+c+x,image2,x,y);// only the second image subwindows are in iteration.
+                            sd2=sd(subrow+r+y,subcol+c+x,image2,x,y);
+                            //cout<<avg1<<"  "<<sd1<<"  "<<avg2<<"  "<<sd2<<endl;
+                            if(sd1!=0&&sd2!=0)
+                            {
+                                cortable[x][y]= cor_coeff(image1,image2,avg1,avg2,subrow+r,subcol+c,x,y,r,c)/(sd1*sd2)/(subrow*subcol);//normalized correlation coefficient
+                            }
+                            else
+                            {
+                                cortable[x][y]= 0;
+                                cerr<<"zero SD"<<endl;
+                            }
+                            //cout<<cortable[x][y]<<endl;
+                        }
+                    }
+                    myfile << "Writing this to a file.\n";
+                    myfile << "max value = " <<max_coef(cortable)<<endl;
+
+                }
+                if((r-32)>0&&(r+32)>totrow2)
+                {
+                    for(x=totcol2-64; x<totcol2; x+=2) // for accuracy, max displacement is N/4; N::window size(NxN)
+                    {
+                        for(y=totrow2-64; y<totrow2; y+=2)
+                        {
+                            avg2=avg(subrow+r+y,subcol+c+x,image2,x,y);// only the second image subwindows are in iteration.
+                            sd2=sd(subrow+r+y,subcol+c+x,image2,x,y);
+                            //cout<<avg1<<"  "<<sd1<<"  "<<avg2<<"  "<<sd2<<endl;
+                            if(sd1!=0&&sd2!=0)
+                            {
+                                cortable[x][y]= cor_coeff(image1,image2,avg1,avg2,subrow+r,subcol+c,x,y,r,c)/(sd1*sd2)/(subrow*subcol);//normalized correlation coefficient
+                            }
+                            else
+                            {
+                                cortable[x][y]= 0;
+                                cerr<<"zero SD"<<endl;
+                            }
+                            //cout<<cortable[x][y]<<endl;
+                        }
+                    }
+                    myfile << "Writing this to a file.\n";
+                    myfile << "max value = " <<max_coef(cortable)<<endl;
+                }
+                if((r-32)<0&&(r+32)<totrow2)
+                {
+                    for(x=totcol2-64; x<totcol2; x+=2) // for accuracy, max displacement is N/4; N::window size(NxN)
+                    {
+                        for(y=0; y<64; y+=2)
+                        {
+                            avg2=avg(subrow+r+y,subcol+c+x,image2,x,y);// only the second image subwindows are in iteration.
+                            sd2=sd(subrow+r+y,subcol+c+x,image2,x,y);
+                            //cout<<avg1<<"  "<<sd1<<"  "<<avg2<<"  "<<sd2<<endl;
+                            if(sd1!=0&&sd2!=0)
+                            {
+                                cortable[x][y]= cor_coeff(image1,image2,avg1,avg2,subrow+r,subcol+c,x,y,r,c)/(sd1*sd2)/(subrow*subcol);//normalized correlation coefficient
+                            }
+                            else
+                            {
+                                cortable[x][y]= 0;
+                                cerr<<"zero SD"<<endl;
+                            }
+                            //cout<<cortable[x][y]<<endl;
+                        }
+                    }
+                    myfile << "Writing this to a file.\n";
+                    myfile << "max value = " <<max_coef(cortable)<<endl;
+                }
+                if((r-32)<0&&(r+32)>totrow2)
+                {
+                    cerr<<"too small image";
+                }
+
+            }
+            if((c-32)<0&&(c+32)<totcol2)
+            {
+                if((r-32)>0&&(r+32)<totrow2)
+                {
+                    for(x=0; x<64; x+=2) // for accuracy, max displacement is N/4; N::window size(NxN)
+                    {
+                        for(y=r-32; y<r+32; y+=2)
+                        {
+                            avg2=avg(subrow+r+y,subcol+c+x,image2,x,y);// only the second image subwindows are in iteration.
+                            sd2=sd(subrow+r+y,subcol+c+x,image2,x,y);
+                            //cout<<avg1<<"  "<<sd1<<"  "<<avg2<<"  "<<sd2<<endl;
+                            if(sd1!=0&&sd2!=0)
+                            {
+                                cortable[x][y]= cor_coeff(image1,image2,avg1,avg2,subrow+r,subcol+c,x,y,r,c)/(sd1*sd2)/(subrow*subcol);//normalized correlation coefficient
+                            }
+                            else
+                            {
+                                cortable[x][y]= 0;
+                                cerr<<"zero SD"<<endl;
+                            }
+                            //cout<<cortable[x][y]<<endl;
+                        }
+                    }
+                    myfile << "Writing this to a file.\n";
+                    myfile << "max value = " <<max_coef(cortable)<<endl;
+                }
+                if((r-32)>0&&(r+32)>totrow2)
+                {
+                     for(x=0; x<64; x+=2) // for accuracy, max displacement is N/4; N::window size(NxN)
+                    {
+                        for(y=totrow2-64; y<totrow2; y+=2)
+                        {
+                            avg2=avg(subrow+r+y,subcol+c+x,image2,x,y);// only the second image subwindows are in iteration.
+                            sd2=sd(subrow+r+y,subcol+c+x,image2,x,y);
+                            //cout<<avg1<<"  "<<sd1<<"  "<<avg2<<"  "<<sd2<<endl;
+                            if(sd1!=0&&sd2!=0)
+                            {
+                                cortable[x][y]= cor_coeff(image1,image2,avg1,avg2,subrow+r,subcol+c,x,y,r,c)/(sd1*sd2)/(subrow*subcol);//normalized correlation coefficient
+                            }
+                            else
+                            {
+                                cortable[x][y]= 0;
+                                cerr<<"zero SD"<<endl;
+                            }
+                            //cout<<cortable[x][y]<<endl;
+                        }
+                    }
+                    myfile << "Writing this to a file.\n";
+                    myfile << "max value = " <<max_coef(cortable)<<endl;
+                }
+                if((r-32)<0&&(r+32)<totrow2)
+                {
+                     for(x=0; x<64; x+=2) // for accuracy, max displacement is N/4; N::window size(NxN)
+                    {
+                        for(y=0; y<64; y+=2)
+                        {
+                            avg2=avg(subrow+r+y,subcol+c+x,image2,x,y);// only the second image subwindows are in iteration.
+                            sd2=sd(subrow+r+y,subcol+c+x,image2,x,y);
+                            //cout<<avg1<<"  "<<sd1<<"  "<<avg2<<"  "<<sd2<<endl;
+                            if(sd1!=0&&sd2!=0)
+                            {
+                                cortable[x][y]= cor_coeff(image1,image2,avg1,avg2,subrow+r,subcol+c,x,y,r,c)/(sd1*sd2)/(subrow*subcol);//normalized correlation coefficient
+                            }
+                            else
+                            {
+                                cortable[x][y]= 0;
+                                cerr<<"zero SD"<<endl;
+                            }
+                            //cout<<cortable[x][y]<<endl;
+                        }
+                    }
+                    myfile << "Writing this to a file.\n";
+                    myfile << "max value = " <<max_coef(cortable)<<endl;
+
+                }
+                if((r-32)<0&&(r+32)>totrow2)
+                {
+                    cerr<<"too small image";
+                }
+            }
+            if((c-32)<0&&(c+32)>totcol2)
+            {
+                cerr<<"too small image";
+            }
         }
     }
     myfile.close();

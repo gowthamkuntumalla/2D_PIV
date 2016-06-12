@@ -3,7 +3,7 @@
 #include<fstream>
 using namespace cv;
 using namespace std;
-// <i><x><col> are equivalent and similarly <j><y><row>  
+// <i><x><col> are equivalent and similarly <j><y><row>
 // convention : (col,row), (x,y) order is followed
 //(c,r) i.e., the top left corner represents the address of subwindow
 /*********************** Auxiliary Functions ***********************/
@@ -81,12 +81,12 @@ void piv_2d(cv::Mat image1, cv::Mat image2)
     int winrow = 64,wincol = 64;// interrogation window size
     int subrow=16,subcol=16;// sub matrix (region of interest-roi)
     int x=0,y=0;// point coordinates
-    
+
     int totrow1= image1.rows,totcol1=image1.cols; //opencv functions to get the rows and columns of image.
     int totrow2= image2.rows,totcol2=image2.cols;
-    
+
     vector< vector <pair<int,int> > > max_coef_point;//  vector for storing of max coeff coordinates in image 2 corresponding to image 1
-    max_coef_point.resize(totrow1-winrow,vector<pair<int,int>>(totcol1-wincol);//initializing the vector
+    max_coef_point.resize(totrow1-winrow,vector<pair<int,int> >(totcol1-wincol));//initializing the vector
 
     /******* Computing STARTS *******/
     myfile.open ("data.txt");
@@ -94,9 +94,9 @@ void piv_2d(cv::Mat image1, cv::Mat image2)
     {
         for(int r=0; r<totrow1-winrow; r++)
         {
-            
+
             vector< vector<double> > cortable; // 2D array of correlation at various (x.y)
-            cortable.resize(winrows,vector<double>(wincols,initial_value));//initializing the vector
+            cortable.resize(winrow,vector<double>(wincol,initial_value));//initializing the vector
             avg1=avg(subcol+c,subrow+r,image1,c,r);//computing average of sub window1
             sd1=sd(subcol+c,subrow+r,image1,c,r);//computing standard deviation of sub window
 
@@ -130,9 +130,9 @@ void piv_2d(cv::Mat image1, cv::Mat image2)
                 }
                 if((r+32)>=totrow2)//bottom border
                 {
-                    for(x=c-32; x<c+32; x+=2) // for accuracy, max displacement is N/4; N::window size(NxN)
+                    for(x=c-32; x<c+32; x++) // for accuracy, max displacement is N/4; N::window size(NxN)
                     {
-                        for(y=totrow2-64; y<totrow2; y+=2)
+                        for(y=totrow2-64; y<totrow2; y++)
                         {
                             avg2=avg(subcol+x,subrow+y,image2,x,y);// only the second image subwindows are in iteration.
                             sd2=sd(subcol+x,subrow+y,image2,x,y);
@@ -155,9 +155,9 @@ void piv_2d(cv::Mat image1, cv::Mat image2)
                 }
                 if((r-32)<=0)//top border
                 {
-                    for(x=c-32; x<c+32; x+=2) // for accuracy, max displacement is N/4; N::window size(NxN)
+                    for(x=c-32; x<c+32; x++) // for accuracy, max displacement is N/4; N::window size(NxN)
                     {
-                        for(y=0; y<64; y+=2)
+                        for(y=0; y<64; y++)
                         {
                              avg2=avg(subcol+x,subrow+y,image2,x,y);// only the second image subwindows are in iteration.
                             sd2=sd(subcol+x,subrow+y,image2,x,y);
@@ -184,13 +184,13 @@ void piv_2d(cv::Mat image1, cv::Mat image2)
                     break;
                 }
             }
-            if((c+32)>=totcol2)//right border 
+            if((c+32)>=totcol2)//right border
             {
                 if((r-32)>=0&&(r+32)<=totrow2)
                 {
-                    for(x=totcol2-64; x<totcol2; x+=2) // for accuracy, max displacement is N/4; N::window size(NxN)
+                    for(x=totcol2-64; x<totcol2; x++) // for accuracy, max displacement is N/4; N::window size(NxN)
                     {
-                        for(y=r-32; y<r+32; y+=2)
+                        for(y=r-32; y<r+32; y++)
                         {
                              avg2=avg(subcol+x,subrow+y,image2,x,y);// only the second image subwindows are in iteration.
                             sd2=sd(subcol+x,subrow+y,image2,x,y);
@@ -213,9 +213,9 @@ void piv_2d(cv::Mat image1, cv::Mat image2)
                 }
                 if((r+32)>=totrow2)
                 {
-                    for(x=totcol2-64; x<totcol2; x+=2) // for accuracy, max displacement is N/4; N::window size(NxN)
+                    for(x=totcol2-64; x<totcol2; x++) // for accuracy, max displacement is N/4; N::window size(NxN)
                     {
-                        for(y=totrow2-64; y<totrow2; y+=2)
+                        for(y=totrow2-64; y<totrow2; y++)
                         {
                              avg2=avg(subcol+x,subrow+y,image2,x,y);// only the second image subwindows are in iteration.
                             sd2=sd(subcol+x,subrow+y,image2,x,y);
@@ -238,9 +238,9 @@ void piv_2d(cv::Mat image1, cv::Mat image2)
                 }
                 if((r-32)<=0)
                 {
-                    for(x=totcol2-64; x<totcol2; x+=2) // for accuracy, max displacement is N/4; N::window size(NxN)
+                    for(x=totcol2-64; x<totcol2; x++) // for accuracy, max displacement is N/4; N::window size(NxN)
                     {
-                        for(y=0; y<64; y+=2)
+                        for(y=0; y<64; y++)
                         {
                             avg2=avg(subcol+x,subrow+y,image2,x,y);// only the second image subwindows are in iteration.
                             sd2=sd(subcol+x,subrow+y,image2,x,y);
@@ -271,9 +271,9 @@ void piv_2d(cv::Mat image1, cv::Mat image2)
             {
                 if((r-32)>=0&&(r+32)<=totrow2)
                 {
-                    for(x=0; x<64; x+=2) // for accuracy, max displacement is N/4; N::window size(NxN)
+                    for(x=0; x<64; x++) // for accuracy, max displacement is N/4; N::window size(NxN)
                     {
-                        for(y=r-32; y<r+32; y+=2)
+                        for(y=r-32; y<r+32; y++)
                         {
                            avg2=avg(subcol+x,subrow+y,image2,x,y);// only the second image subwindows are in iteration.
                             sd2=sd(subcol+x,subrow+y,image2,x,y);
@@ -296,9 +296,9 @@ void piv_2d(cv::Mat image1, cv::Mat image2)
                 }
                 if((r+32)>=totrow2)
                 {
-                     for(x=0; x<64; x+=2) // for accuracy, max displacement is N/4; N::window size(NxN)
+                     for(x=0; x<64; x++) // for accuracy, max displacement is N/4; N::window size(NxN)
                     {
-                        for(y=totrow2-64; y<totrow2; y+=2)
+                        for(y=totrow2-64; y<totrow2; y++)
                         {
                             avg2=avg(subcol+x,subrow+y,image2,x,y);// only the second image subwindows are in iteration.
                             sd2=sd(subcol+x,subrow+y,image2,x,y);
@@ -321,9 +321,9 @@ void piv_2d(cv::Mat image1, cv::Mat image2)
                 }
                 if((r-32)<=0)
                 {
-                     for(x=0; x<64; x+=2) // for accuracy, max displacement is N/4; N::window size(NxN)
+                     for(x=0; x<64; x++) // for accuracy, max displacement is N/4; N::window size(NxN)
                     {
-                        for(y=0; y<64; y+=2)
+                        for(y=0; y<64; y++)
                         {
                             avg2=avg(subcol+x,subrow+y,image2,x,y);// only the second image subwindows are in iteration.
                             sd2=sd(subcol+x,subrow+y,image2,x,y);

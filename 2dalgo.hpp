@@ -1,6 +1,7 @@
 #ifndef _2DALGO_HPP_
 #define _2DALGO_HPP_
 #include<fstream>
+#include<cmath>
 using namespace cv;
 using namespace std;
 // <i><x><col> are equivalent and similarly <j><y><row>
@@ -25,6 +26,7 @@ double sd(const int x2,const int y2, Mat image,const int x1,const int y1)//stand
 {
     double var= 0.0;//variance
     double aver = avg(x2,y2,image,x1,y1);
+    //myfile<<aver<<endl;
     for (int i=x1; i<x2; i++) //window starting at (x,y)
     {
         for (int j=y1; j<y2; j++)
@@ -33,7 +35,8 @@ double sd(const int x2,const int y2, Mat image,const int x1,const int y1)//stand
             var+=((a-aver)*(a-aver));
         }
     }
-    return sqrt(var);
+    var=sqrt(var)/256;
+    return var;
 }
 double cor_coeff(Mat image1,Mat image2,double avg1,double avg2,const int subcol,const int subrow,const int x2,const int y2,const int c,const int r) // return correlation coefficient
 {
@@ -55,9 +58,9 @@ double cor_coeff(Mat image1,Mat image2,double avg1,double avg2,const int subcol,
 double max_coef(vector< vector<double> > t,const int wincol,const int winrow,int& max_x,int& max_y )
 {
     int a=-1;// all intensities are greater than this
-    for(int i=0; i<wincol; i++)
+    for(int i=max_x; i<wincol+max_x; i++)
     {
-        for(int j=0; j<winrow; j++)
+        for(int j=max_y; j<winrow+max_y; j++)
         {
             if(t[i][j]>=a)
             {
@@ -75,7 +78,7 @@ void piv_2d(cv::Mat image1, cv::Mat image2)
 {
 
     /******* Declarations *******/
-    ofstream myfile;
+     ofstream myfile;
     int initial_value = 0;
     double avg1=0,avg2=0;
     double sd1=0, sd2=0;
@@ -90,25 +93,25 @@ void piv_2d(cv::Mat image1, cv::Mat image2)
     max_coef_point.resize(totrow1-winrow,vector<pair<int,int> >(totcol1-wincol));//initializing the vector
 
     /******* Computing STARTS *******/
-    myfile.open ("data.txt");
+     myfile.open ("data.txt");
     for(int c=0; c<totcol1-wincol; c+=1)
     {
         for(int r=0; r<totrow1-winrow; r+=1)
         {
-
+            int m=0,n=0;//the max coefficent point
             vector< vector<double> > cortable; // 2D array of correlation at various (x.y)
-            cortable.resize(winrow,vector<double>(wincol,initial_value));//initializing the vector
+            cortable.resize(totrow1,vector<double>(totcol1,initial_value));//initializing the vector
             avg1=avg(subcol+c,subrow+r,image1,c,r);//computing average of sub window1
             sd1=sd(subcol+c,subrow+r,image1,c,r);//computing standard deviation of sub window
 
             //assume image size is greater than 200X200 pixel
-            if((c-32)>=0&&(c+32)<=totcol2)//inner region
+            if(((c-32)>=0)&&((c+32)<=totcol2))//inner region
             {
                 if((r-32)>=0&&(r+32)<=totrow2)//inner region
                 {
-                    for(x=c-32; x<c+32; x++) // for accuracy, max displacement is N/4; N::window size(NxN)
+                    for(x=c-32,m=x; x<c+32; x++) // for accuracy, max displacement is N/4; N::window size(NxN)
                     {
-                        for(y=r-32; y<r+32; y++)
+                        for(y=r-32,n=y; y<r+32; y++) // m,n are initialized to starting point
                         {
                             avg2=avg(subcol+x,subrow+y,image2,x,y);// only the second image subwindows are in iteration.
                             sd2=sd(subcol+x,subrow+y,image2,x,y);
@@ -122,20 +125,20 @@ void piv_2d(cv::Mat image1, cv::Mat image2)
                                 cortable[x][y]= 0;
                                 myfile<<"zero SD"<<endl;
                             }
-                            //cout<<cortable[x][y]<<endl;
+                            //myfile<<cortable[x][y]<<endl;
                         }
                     }
-                    int m=0,n=0;
+
                     myfile << "max value = " <<max_coef(cortable,wincol,winrow,m,n)<<endl;//myfile << "Writing this to a file.\n";
                     max_coef_point[c][r].first=m;
                     max_coef_point[c][r].second=n;
                     myfile<<m<<" "<<n<<endl;
                 }
-                if((r+32)>=totrow2)//bottom border
+                if((r+32)>totrow2)//bottom border
                 {
-                    for(x=c-32; x<c+32; x++) // for accuracy, max displacement is N/4; N::window size(NxN)
+                    for(x=c-32,m=x; x<c+32; x++) // for accuracy, max displacement is N/4; N::window size(NxN)
                     {
-                        for(y=totrow2-64; y<totrow2; y++)
+                        for(y=totrow2-64,n=y; y<totrow2; y++)
                         {
                             avg2=avg(subcol+x,subrow+y,image2,x,y);// only the second image subwindows are in iteration.
                             sd2=sd(subcol+x,subrow+y,image2,x,y);
@@ -149,20 +152,20 @@ void piv_2d(cv::Mat image1, cv::Mat image2)
                                 cortable[x][y]= 0;
                                 myfile<<"zero SD"<<endl;
                             }
-                            //cout<<cortable[x][y]<<endl;
+                            //myfile<<cortable[x][y]<<endl;
                         }
                     }
-                    int m=0,n=0;
+
                     myfile << "max value = " <<max_coef(cortable,wincol,winrow,m,n)<<endl;//myfile << "Writing this to a file.\n";
                     max_coef_point[c][r].first=m;
                     max_coef_point[c][r].second=n;
                     myfile<<m<<" "<<n<<endl;
                 }
-                if((r-32)<=0)//top border
+                if((r-32)<0)//top border
                 {
-                    for(x=c-32; x<c+32; x++) // for accuracy, max displacement is N/4; N::window size(NxN)
+                    for(x=c-32,m=x; x<c+32; x++) // for accuracy, max displacement is N/4; N::window size(NxN)
                     {
-                        for(y=0; y<64; y++)
+                        for(y=0,n=y; y<64; y++)
                         {
                             avg2=avg(subcol+x,subrow+y,image2,x,y);// only the second image subwindows are in iteration.
                             sd2=sd(subcol+x,subrow+y,image2,x,y);
@@ -176,10 +179,10 @@ void piv_2d(cv::Mat image1, cv::Mat image2)
                                 cortable[x][y]= 0;
                                 myfile<<"zero SD"<<endl;
                             }
-                            //cout<<cortable[x][y]<<endl;
+                            //myfile<<cortable[x][y]<<endl;
                         }
                     }
-                    int m=0,n=0;
+
                     myfile << "max value = " <<max_coef(cortable,wincol,winrow,m,n)<<endl;//myfile << "Writing this to a file.\n";
                     max_coef_point[c][r].first=m;
                     max_coef_point[c][r].second=n;
@@ -195,9 +198,9 @@ void piv_2d(cv::Mat image1, cv::Mat image2)
             {
                 if((r-32)>=0&&(r+32)<=totrow2)
                 {
-                    for(x=totcol2-64; x<totcol2; x++) // for accuracy, max displacement is N/4; N::window size(NxN)
+                    for(x=totcol2-64,m=x; x<totcol2; x++) // for accuracy, max displacement is N/4; N::window size(NxN)
                     {
-                        for(y=r-32; y<r+32; y++)
+                        for(y=r-32,n=y; y<r+32; y++)
                         {
                             avg2=avg(subcol+x,subrow+y,image2,x,y);// only the second image subwindows are in iteration.
                             sd2=sd(subcol+x,subrow+y,image2,x,y);
@@ -211,20 +214,20 @@ void piv_2d(cv::Mat image1, cv::Mat image2)
                                 cortable[x][y]= 0;
                                 myfile<<"zero SD"<<endl;
                             }
-                            //cout<<cortable[x][y]<<endl;
+                            //myfile<<cortable[x][y]<<endl;
                         }
                     }
-                    int m=0,n=0;
+
                     myfile << "max value = " <<max_coef(cortable,wincol,winrow,m,n)<<endl;//myfile << "Writing this to a file.\n";
                     max_coef_point[c][r].first=m;
                     max_coef_point[c][r].second=n;
                     myfile<<m<<" "<<n<<endl;
                 }
-                if((r+32)>=totrow2)
+                if((r+32)>totrow2)
                 {
-                    for(x=totcol2-64; x<totcol2; x++) // for accuracy, max displacement is N/4; N::window size(NxN)
+                    for(x=totcol2-64,m=x; x<totcol2; x++) // for accuracy, max displacement is N/4; N::window size(NxN)
                     {
-                        for(y=totrow2-64; y<totrow2; y++)
+                        for(y=totrow2-64,n=y; y<totrow2; y++)
                         {
                             avg2=avg(subcol+x,subrow+y,image2,x,y);// only the second image subwindows are in iteration.
                             sd2=sd(subcol+x,subrow+y,image2,x,y);
@@ -237,20 +240,20 @@ void piv_2d(cv::Mat image1, cv::Mat image2)
                                 cortable[x][y]= 0;
                                 myfile<<"zero SD"<<endl;
                             }
-                            //cout<<cortable[x][y]<<endl;
+                            //myfile<<cortable[x][y]<<endl;
                         }
                     }
-                    int m=0,n=0;
+
                     myfile << "max value = " <<max_coef(cortable,wincol,winrow,m,n)<<endl;//myfile << "Writing this to a file.\n";
                     max_coef_point[c][r].first=m;
                     max_coef_point[c][r].second=n;
                     myfile<<m<<" "<<n<<endl;
                 }
-                if((r-32)<=0)
+                if((r-32)<0)
                 {
-                    for(x=totcol2-64; x<totcol2; x++) // for accuracy, max displacement is N/4; N::window size(NxN)
+                    for(x=totcol2-64,m=x; x<totcol2; x++) // for accuracy, max displacement is N/4; N::window size(NxN)
                     {
-                        for(y=0; y<64; y++)
+                        for(y=0,n=y; y<64; y++)
                         {
                             avg2=avg(subcol+x,subrow+y,image2,x,y);// only the second image subwindows are in iteration.
                             sd2=sd(subcol+x,subrow+y,image2,x,y);
@@ -263,10 +266,10 @@ void piv_2d(cv::Mat image1, cv::Mat image2)
                                 cortable[x][y]= 0;
                                 myfile<<"zero SD"<<endl;
                             }
-                            //cout<<cortable[x][y]<<endl;
+                            //myfile<<cortable[x][y]<<endl;
                         }
                     }
-                    int m=0,n=0;
+
                     myfile << "max value = " <<max_coef(cortable,wincol,winrow,m,n)<<endl;//myfile << "Writing this to a file.\n";
                     max_coef_point[c][r].first=m;
                     max_coef_point[c][r].second=n;
@@ -282,9 +285,9 @@ void piv_2d(cv::Mat image1, cv::Mat image2)
             {
                 if((r-32)>=0&&(r+32)<=totrow2)
                 {
-                    for(x=0; x<64; x++) // for accuracy, max displacement is N/4; N::window size(NxN)
+                    for(x=0,m=x; x<64; x++) // for accuracy, max displacement is N/4; N::window size(NxN)
                     {
-                        for(y=r-32; y<r+32; y++)
+                        for(y=r-32,n=y; y<r+32; y++)
                         {
                             avg2=avg(subcol+x,subrow+y,image2,x,y);// only the second image subwindows are in iteration.
                             sd2=sd(subcol+x,subrow+y,image2,x,y);
@@ -297,20 +300,20 @@ void piv_2d(cv::Mat image1, cv::Mat image2)
                                 cortable[x][y]= 0;
                                 myfile<<"zero SD"<<endl;
                             }
-                            //cout<<cortable[x][y]<<endl;
+                            //myfile<<cortable[x][y]<<endl;
                         }
                     }
-                    int m=0,n=0;
+
                     myfile << "max value = " <<max_coef(cortable,wincol,winrow,m,n)<<endl;//myfile << "Writing this to a file.\n";
                     max_coef_point[c][r].first=m;
                     max_coef_point[c][r].second=n;
                     myfile<<m<<" "<<n<<endl;
                 }
-                if((r+32)>=totrow2)
+                if((r+32)>totrow2)
                 {
-                    for(x=0; x<64; x++) // for accuracy, max displacement is N/4; N::window size(NxN)
+                    for(x=0,m=x; x<64; x++) // for accuracy, max displacement is N/4; N::window size(NxN)
                     {
-                        for(y=totrow2-64; y<totrow2; y++)
+                        for(y=totrow2-64,n=y; y<totrow2; y++)
                         {
                             avg2=avg(subcol+x,subrow+y,image2,x,y);// only the second image subwindows are in iteration.
                             sd2=sd(subcol+x,subrow+y,image2,x,y);
@@ -323,23 +326,24 @@ void piv_2d(cv::Mat image1, cv::Mat image2)
                                 cortable[x][y]= 0;
                                 myfile<<"zero SD"<<endl;
                             }
-                            //cout<<cortable[x][y]<<endl;
+                            //myfile<<cortable[x][y]<<endl;
                         }
                     }
-                    int m=0,n=0;
+
                     myfile << "max value = " <<max_coef(cortable,wincol,winrow,m,n)<<endl;//myfile << "Writing this to a file.\n";
                     max_coef_point[c][r].first=m;
                     max_coef_point[c][r].second=n;
                     myfile<<m<<" "<<n<<endl;
                 }
-                if((r-32)<=0)
+                if((r-32)<0)
                 {
-                    for(x=0; x<64; x+=1) // for accuracy, max displacement is N/4; N::window size(NxN)
+                    for(x=0,m=x; x<64; x+=1) // for accuracy, max displacement is N/4; N::window size(NxN)
                     {
-                        for(y=0; y<64; y+=1)
+                        for(y=0,n=y; y<64; y+=1)
                         {
                             avg2=avg(subcol+x,subrow+y,image2,x,y);// only the second image subwindows are in iteration.
                             sd2=sd(subcol+x,subrow+y,image2,x,y);
+                            //myfile<<avg2<<" * "<<sd2<<endl;
                             if((sd1!=0)&&(sd2!=0))
                             {
                                 cortable[x][y]= cor_coeff(image1,image2,avg1,avg2,subcol,subrow,x,y,c,r)/(sd1*sd2)/(subrow*subcol);//normalized correlation coefficient
@@ -349,13 +353,13 @@ void piv_2d(cv::Mat image1, cv::Mat image2)
                                 cortable[x][y]= 0;
                                 myfile<<"zero SD"<<endl;
                             }
-                            //cout<<cortable[x][y]<<endl;
+                            //myfile<<cortable[x][y]<<endl;
                         }
                     }
-                    int m=0,n=0;
+
                     myfile << "max value = " <<max_coef(cortable,wincol,winrow,m,n)<<endl;//myfile << "Writing this to a file.\n";
-                    max_coef_point[c][r].first=m;
-                    max_coef_point[c][r].second=n;
+                    max_coef_point[c][r].first=m+c;
+                    max_coef_point[c][r].second=n+r;
                     myfile<<m<<" "<<n<<endl;
                 }
                 if((r-32)<=0&&(r+32)>=totrow2)

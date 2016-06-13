@@ -74,7 +74,7 @@ double max_coef(vector< vector<double> > t,const int wincol,const int winrow,int
 }
 
 /********* function *********/
-void piv_2d(cv::Mat image1, cv::Mat image2)
+void piv_2d(cv::Mat image1, cv::Mat image2,vector< vector <pair<int,int> > > &max_points)
 {
 
     /******* Declarations *******/
@@ -94,9 +94,9 @@ void piv_2d(cv::Mat image1, cv::Mat image2)
 
     /******* Computing STARTS *******/
      myfile.open ("data.txt");
-    for(int c=0; c<totcol1-wincol; c+=1)
+    for(int c=0; c<totcol1-wincol; c+=32)
     {
-        for(int r=0; r<totrow1-winrow; r+=1)
+        for(int r=0; r<totrow1-winrow; r+=32)
         {
             int m=0,n=0;//the max coefficent point
             vector< vector<double> > cortable; // 2D array of correlation at various (x.y)
@@ -373,6 +373,7 @@ void piv_2d(cv::Mat image1, cv::Mat image2)
             }
         }
     }
+    max_points=max_coef_point;
     myfile.close();
 }
 //core function of 2D_PIV

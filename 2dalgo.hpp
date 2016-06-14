@@ -58,11 +58,12 @@ double cor_coeff(Mat image1,Mat image2,double avg1,double avg2,const int subcol,
 double max_coef(vector< vector<double> > t,const int wincol,const int winrow,int& max_x,int& max_y )
 {
     int a=-1;// all intensities are greater than this
-    for(int i=max_x; i<wincol+max_x; i++)
+    int m=max_x,n=max_y;
+    for(int i=m; i<wincol+m; i++)
     {
-        for(int j=max_y; j<winrow+max_y; j++)
+        for(int j=n; j<winrow+n; j++)
         {
-            if(t[i][j]>=a)
+            if(t[i][j]>a)
             {
                 a=t[i][j];
                 max_x=i;
@@ -89,10 +90,10 @@ void piv_2d(cv::Mat image1, cv::Mat image2,vector< vector <pair<int,int> > > &ma
     int totrow1= image1.rows,totcol1=image1.cols; //opencv functions to get the rows and columns of image.
     int totrow2= image2.rows,totcol2=image2.cols;
 
-    vector< vector <pair<int,int> > > max_coef_point;//  vector for storing of max coeff coordinates in image 2 corresponding to image 1
+    /*vector< vector <pair<int,int> > > max_coef_point;//  vector for storing of max coeff coordinates in image 2 corresponding to image 1
     max_coef_point.resize(totrow1-winrow,vector<pair<int,int> >(totcol1-wincol));//initializing the vector
-
-    /******* Computing STARTS *******/
+*/
+    /******* Start Computing *******/
      myfile.open ("data.txt");
     for(int c=0; c<totcol1-wincol; c+=32)
     {
@@ -109,7 +110,7 @@ void piv_2d(cv::Mat image1, cv::Mat image2,vector< vector <pair<int,int> > > &ma
             {
                 if((r-32)>=0&&(r+32)<=totrow2)//inner region
                 {
-                    for(x=c-32,m=x; x<c+32; x++) // for accuracy, max displacement is N/4; N::window size(NxN)
+                    for(x=c-32,m=x; x<c+32; x++)
                     {
                         for(y=r-32,n=y; y<r+32; y++) // m,n are initialized to starting point
                         {
@@ -130,13 +131,13 @@ void piv_2d(cv::Mat image1, cv::Mat image2,vector< vector <pair<int,int> > > &ma
                     }
 
                     myfile << "max value = " <<max_coef(cortable,wincol,winrow,m,n)<<endl;//myfile << "Writing this to a file.\n";
-                    max_coef_point[c][r].first=m;
-                    max_coef_point[c][r].second=n;
+                    /*max_coef_point[c][r].first=m;*/
+                   /* max_coef_point[c][r].second=n;*/
                     myfile<<m<<" "<<n<<endl;
                 }
                 if((r+32)>totrow2)//bottom border
                 {
-                    for(x=c-32,m=x; x<c+32; x++) // for accuracy, max displacement is N/4; N::window size(NxN)
+                    for(x=c-32,m=x; x<c+32; x++)
                     {
                         for(y=totrow2-64,n=y; y<totrow2; y++)
                         {
@@ -157,13 +158,13 @@ void piv_2d(cv::Mat image1, cv::Mat image2,vector< vector <pair<int,int> > > &ma
                     }
 
                     myfile << "max value = " <<max_coef(cortable,wincol,winrow,m,n)<<endl;//myfile << "Writing this to a file.\n";
-                    max_coef_point[c][r].first=m;
-                    max_coef_point[c][r].second=n;
+                    /*max_coef_point[c][r].first=m;*/
+                   /* max_coef_point[c][r].second=n;*/
                     myfile<<m<<" "<<n<<endl;
                 }
                 if((r-32)<0)//top border
                 {
-                    for(x=c-32,m=x; x<c+32; x++) // for accuracy, max displacement is N/4; N::window size(NxN)
+                    for(x=c-32,m=x; x<c+32; x++)
                     {
                         for(y=0,n=y; y<64; y++)
                         {
@@ -184,8 +185,8 @@ void piv_2d(cv::Mat image1, cv::Mat image2,vector< vector <pair<int,int> > > &ma
                     }
 
                     myfile << "max value = " <<max_coef(cortable,wincol,winrow,m,n)<<endl;//myfile << "Writing this to a file.\n";
-                    max_coef_point[c][r].first=m;
-                    max_coef_point[c][r].second=n;
+                    /*max_coef_point[c][r].first=m;*/
+                   /* max_coef_point[c][r].second=n;*/
                     myfile<<m<<" "<<n<<endl;
                 }
                 if((r-32)<=0&&(r+32)>=totrow2)//bad image!!
@@ -198,7 +199,7 @@ void piv_2d(cv::Mat image1, cv::Mat image2,vector< vector <pair<int,int> > > &ma
             {
                 if((r-32)>=0&&(r+32)<=totrow2)
                 {
-                    for(x=totcol2-64,m=x; x<totcol2; x++) // for accuracy, max displacement is N/4; N::window size(NxN)
+                    for(x=totcol2-64,m=x; x<totcol2; x++)
                     {
                         for(y=r-32,n=y; y<r+32; y++)
                         {
@@ -219,13 +220,13 @@ void piv_2d(cv::Mat image1, cv::Mat image2,vector< vector <pair<int,int> > > &ma
                     }
 
                     myfile << "max value = " <<max_coef(cortable,wincol,winrow,m,n)<<endl;//myfile << "Writing this to a file.\n";
-                    max_coef_point[c][r].first=m;
-                    max_coef_point[c][r].second=n;
+                    /*max_coef_point[c][r].first=m;*/
+                   /* max_coef_point[c][r].second=n;*/
                     myfile<<m<<" "<<n<<endl;
                 }
                 if((r+32)>totrow2)
                 {
-                    for(x=totcol2-64,m=x; x<totcol2; x++) // for accuracy, max displacement is N/4; N::window size(NxN)
+                    for(x=totcol2-64,m=x; x<totcol2; x++)
                     {
                         for(y=totrow2-64,n=y; y<totrow2; y++)
                         {
@@ -245,13 +246,13 @@ void piv_2d(cv::Mat image1, cv::Mat image2,vector< vector <pair<int,int> > > &ma
                     }
 
                     myfile << "max value = " <<max_coef(cortable,wincol,winrow,m,n)<<endl;//myfile << "Writing this to a file.\n";
-                    max_coef_point[c][r].first=m;
-                    max_coef_point[c][r].second=n;
+                    /*max_coef_point[c][r].first=m;*/
+                   /* max_coef_point[c][r].second=n;*/
                     myfile<<m<<" "<<n<<endl;
                 }
                 if((r-32)<0)
                 {
-                    for(x=totcol2-64,m=x; x<totcol2; x++) // for accuracy, max displacement is N/4; N::window size(NxN)
+                    for(x=totcol2-64,m=x; x<totcol2; x++)
                     {
                         for(y=0,n=y; y<64; y++)
                         {
@@ -271,8 +272,8 @@ void piv_2d(cv::Mat image1, cv::Mat image2,vector< vector <pair<int,int> > > &ma
                     }
 
                     myfile << "max value = " <<max_coef(cortable,wincol,winrow,m,n)<<endl;//myfile << "Writing this to a file.\n";
-                    max_coef_point[c][r].first=m;
-                    max_coef_point[c][r].second=n;
+                    /*max_coef_point[c][r].first=m;*/
+                   /* max_coef_point[c][r].second=n;*/
                     myfile<<m<<" "<<n<<endl;
                 }
                 if((r-32)<=0&&(r+32)>=totrow2)
@@ -285,7 +286,7 @@ void piv_2d(cv::Mat image1, cv::Mat image2,vector< vector <pair<int,int> > > &ma
             {
                 if((r-32)>=0&&(r+32)<=totrow2)
                 {
-                    for(x=0,m=x; x<64; x++) // for accuracy, max displacement is N/4; N::window size(NxN)
+                    for(x=0,m=x; x<64; x++)
                     {
                         for(y=r-32,n=y; y<r+32; y++)
                         {
@@ -305,13 +306,13 @@ void piv_2d(cv::Mat image1, cv::Mat image2,vector< vector <pair<int,int> > > &ma
                     }
 
                     myfile << "max value = " <<max_coef(cortable,wincol,winrow,m,n)<<endl;//myfile << "Writing this to a file.\n";
-                    max_coef_point[c][r].first=m;
-                    max_coef_point[c][r].second=n;
+                    /*max_coef_point[c][r].first=m;*/
+                   /* max_coef_point[c][r].second=n;*/
                     myfile<<m<<" "<<n<<endl;
                 }
                 if((r+32)>totrow2)
                 {
-                    for(x=0,m=x; x<64; x++) // for accuracy, max displacement is N/4; N::window size(NxN)
+                    for(x=0,m=x; x<64; x++)
                     {
                         for(y=totrow2-64,n=y; y<totrow2; y++)
                         {
@@ -331,13 +332,13 @@ void piv_2d(cv::Mat image1, cv::Mat image2,vector< vector <pair<int,int> > > &ma
                     }
 
                     myfile << "max value = " <<max_coef(cortable,wincol,winrow,m,n)<<endl;//myfile << "Writing this to a file.\n";
-                    max_coef_point[c][r].first=m;
-                    max_coef_point[c][r].second=n;
+                    /*max_coef_point[c][r].first=m;*/
+                   /* max_coef_point[c][r].second=n;*/
                     myfile<<m<<" "<<n<<endl;
                 }
                 if((r-32)<0)
                 {
-                    for(x=0,m=x; x<64; x+=1) // for accuracy, max displacement is N/4; N::window size(NxN)
+                    for(x=0,m=x; x<64; x+=1)
                     {
                         for(y=0,n=y; y<64; y+=1)
                         {
@@ -358,8 +359,8 @@ void piv_2d(cv::Mat image1, cv::Mat image2,vector< vector <pair<int,int> > > &ma
                     }
 
                     myfile << "max value = " <<max_coef(cortable,wincol,winrow,m,n)<<endl;//myfile << "Writing this to a file.\n";
-                    max_coef_point[c][r].first=m+c;
-                    max_coef_point[c][r].second=n+r;
+                   /*max_coef_point[c][r].first=m;*/
+                   /*max_coef_point[c][r].second=n;*/
                     myfile<<m<<" "<<n<<endl;
                 }
                 if((r-32)<=0&&(r+32)>=totrow2)
@@ -373,7 +374,7 @@ void piv_2d(cv::Mat image1, cv::Mat image2,vector< vector <pair<int,int> > > &ma
             }
         }
     }
-    max_points=max_coef_point;
+/*    max_points=max_coef_point;*/
     myfile.close();
 }
 //core function of 2D_PIV

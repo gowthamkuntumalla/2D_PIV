@@ -4,9 +4,10 @@
 #include<cmath>
 using namespace cv;
 using namespace std;
-// <i><x><col> are equivalent and similarly <j><y><row>
-// convention : (col,row), (x,y) order is followed
-//(c,r) i.e., the top left corner represents the address of subwindow
+/**access in vector is [row][column]**/
+/** <i><x><col> are equivalent and similarly <j><y><row> are equivalent**/
+/** convention : (col,row), (x,y) order is followed**/
+/** cartesian coordinates (c,r) i.e., the top left corner represents the address of subwindow**/
 /*********************** Auxiliary Functions ***********************/
 double avg(const int x2,const int y2, Mat image,const int x1,const int y1)//average of sub matrix
 {
@@ -15,7 +16,7 @@ double avg(const int x2,const int y2, Mat image,const int x1,const int y1)//aver
     {
         for (int j=y1; j<y2; j++) // <i><x><col> equivalent and similar
         {
-            double a = (int)image.at<uchar> (i,j);
+            double a = (int)image.at<uchar> (j,i);
             sum+=a;
         }
     }
@@ -31,11 +32,11 @@ double sd(const int x2,const int y2, Mat image,const int x1,const int y1)//stand
     {
         for (int j=y1; j<y2; j++)
         {
-            double a = (int)image.at<uchar> (i,j);
+            double a = (int)image.at<uchar> (j,i);
             var+=((a-aver)*(a-aver));
         }
     }
-    var=sqrt(var)/256;
+    var=sqrt(var)/((x2-x1)*(y2-y1));
     return var;
 }
 double cor_coeff(Mat image1,Mat image2,double avg1,double avg2,const int subcol,const int subrow,const int x2,const int y2,const int c,const int r) // return correlation coefficient
@@ -47,8 +48,8 @@ double cor_coeff(Mat image1,Mat image2,double avg1,double avg2,const int subcol,
     {
         for (int j=0; j<subrow; j++)
         {
-            double a = (int)image1.at<uchar> (c+i,r+j);
-            double b = (int)image2.at<uchar> (x2+i,y2+j);
+            double a = (int)image1.at<uchar> (r+j,c+i);
+            double b = (int)image2.at<uchar> (y2+j,x2+i);
             val+=((a-avg1)*(b-avg2)); // main equation
         }
     }
@@ -63,9 +64,9 @@ double max_coef(vector< vector<double> > t,const int wincol,const int winrow,int
     {
         for(int j=n; j<winrow+n; j++)
         {
-            if(t[i][j]>a)
+            if(t[j][i]>a)
             {
-                a=t[i][j];
+                a=t[j][i];
                 max_x=i;
                 max_y=j;
             }
@@ -79,29 +80,33 @@ void piv_2d(cv::Mat image1, cv::Mat image2,vector< vector <pair<int,int> > > &ma
 {
 
     /******* Declarations *******/
-     ofstream myfile;
+    ofstream myfile;
     int initial_value = 0;
     double avg1=0,avg2=0;
     double sd1=0, sd2=0;
     int winrow = 64,wincol = 64;// interrogation window size
-    int subrow=16,subcol=16;// sub matrix (region of interest-roi)
+    int subrow = 16,subcol = 16;// sub matrix (region of interest-roi)
     int x=0,y=0;// point coordinates
 
     int totrow1= image1.rows,totcol1=image1.cols; //opencv functions to get the rows and columns of image.
     int totrow2= image2.rows,totcol2=image2.cols;
+    // cout<< totrow1<<" "<<totcol1<<" "<<totrow2<<" "<<totcol2;
 
-    /*vector< vector <pair<int,int> > > max_coef_point;//  vector for storing of max coeff coordinates in image 2 corresponding to image 1
+    vector< vector <pair<int,int> > > max_coef_point;//  vector for storing of max coeff coordinates in image 2 corresponding to image 1
     max_coef_point.resize(totrow1-winrow,vector<pair<int,int> >(totcol1-wincol));//initializing the vector
-*/
+
     /******* Start Computing *******/
-     myfile.open ("data.txt");
-    for(int c=0; c<totcol1-wincol; c+=32)
+    myfile.open ("data.txt");
+    vector< vector<double> > cortable;// 2D array of correlation at various (x.y)
+    for(int c=0; c<(totcol1-wincol); c+=16)
     {
-        for(int r=0; r<totrow1-winrow; r+=32)
+        for(int r=0; r<(totrow1-winrow); r+=16)
         {
+            myfile<<"**"<<c<<" "<<r<<endl;
             int m=0,n=0;//the max coefficent point
-            vector< vector<double> > cortable; // 2D array of correlation at various (x.y)
-            cortable.resize(totrow1,vector<double>(totcol1,initial_value));//initializing the vector
+
+            //cortable.resize(totcol1,vector<double>(totrow1,initial_value));//initializing the vector
+            cortable = vector<vector<double> >(totrow1, vector<double>(totcol1,initial_value));
             avg1=avg(subcol+c,subrow+r,image1,c,r);//computing average of sub window1
             sd1=sd(subcol+c,subrow+r,image1,c,r);//computing standard deviation of sub window
 
@@ -119,20 +124,20 @@ void piv_2d(cv::Mat image1, cv::Mat image2,vector< vector <pair<int,int> > > &ma
                             if((sd1!=0)&&(sd2!=0))
                             {
                                 //Mat image1,Mat image2,int avg1,int avg2,const int subcol,const int subrow,const int x2,const int y2,const int c,const int r
-                                cortable[x][y]= cor_coeff(image1,image2,avg1,avg2,subcol,subrow,x,y,c,r)/(sd1*sd2)/(subrow*subcol);//normalized correlation coefficient
+                                cortable[y][x]= cor_coeff(image1,image2,avg1,avg2,subcol,subrow,x,y,c,r)/(sd1*sd2)/(subrow*subcol);//normalized correlation coefficient
                             }
                             else
                             {
-                                cortable[x][y]= 0;
+                                cortable[y][x]= 0;
                                 myfile<<"zero SD"<<endl;
                             }
-                            //myfile<<cortable[x][y]<<endl;
+                            //myfile<<cortable[y][x]<<endl;
                         }
                     }
 
                     myfile << "max value = " <<max_coef(cortable,wincol,winrow,m,n)<<endl;//myfile << "Writing this to a file.\n";
-                    /*max_coef_point[c][r].first=m;*/
-                   /* max_coef_point[c][r].second=n;*/
+                    max_coef_point[r][c].first=n;//row index
+                    max_coef_point[r][c].second=m;//column index
                     myfile<<m<<" "<<n<<endl;
                 }
                 if((r+32)>totrow2)//bottom border
@@ -146,20 +151,20 @@ void piv_2d(cv::Mat image1, cv::Mat image2,vector< vector <pair<int,int> > > &ma
                             if((sd1!=0)&&(sd2!=0))
                             {
                                 //Mat image1,Mat image2,int avg1,int avg2,const int subcol,const int subrow,const int x2,const int y2,const int c,const int r
-                                cortable[x][y]= cor_coeff(image1,image2,avg1,avg2,subcol,subrow,x,y,c,r)/(sd1*sd2)/(subrow*subcol);//normalized correlation coefficient
+                                cortable[y][x]= cor_coeff(image1,image2,avg1,avg2,subcol,subrow,x,y,c,r)/(sd1*sd2)/(subrow*subcol);//normalized correlation coefficient
                             }
                             else
                             {
-                                cortable[x][y]= 0;
+                                cortable[y][x]= 0;
                                 myfile<<"zero SD"<<endl;
                             }
-                            //myfile<<cortable[x][y]<<endl;
+                            //myfile<<cortable[y][x]<<endl;
                         }
                     }
 
                     myfile << "max value = " <<max_coef(cortable,wincol,winrow,m,n)<<endl;//myfile << "Writing this to a file.\n";
-                    /*max_coef_point[c][r].first=m;*/
-                   /* max_coef_point[c][r].second=n;*/
+                    max_coef_point[r][c].first=n;//row index
+                    max_coef_point[r][c].second=m;//column index
                     myfile<<m<<" "<<n<<endl;
                 }
                 if((r-32)<0)//top border
@@ -173,20 +178,20 @@ void piv_2d(cv::Mat image1, cv::Mat image2,vector< vector <pair<int,int> > > &ma
                             if((sd1!=0)&&(sd2!=0))
                             {
                                 //Mat image1,Mat image2,int avg1,int avg2,const int subcol,const int subrow,const int x2,const int y2,const int c,const int r
-                                cortable[x][y]= cor_coeff(image1,image2,avg1,avg2,subcol,subrow,x,y,c,r)/(sd1*sd2)/(subrow*subcol);//normalized correlation coefficient
+                                cortable[y][x]= cor_coeff(image1,image2,avg1,avg2,subcol,subrow,x,y,c,r)/(sd1*sd2)/(subrow*subcol);//normalized correlation coefficient
                             }
                             else
                             {
-                                cortable[x][y]= 0;
+                                cortable[y][x]= 0;
                                 myfile<<"zero SD"<<endl;
                             }
-                            //myfile<<cortable[x][y]<<endl;
+                            //myfile<<cortable[y][x]<<endl;
                         }
                     }
 
                     myfile << "max value = " <<max_coef(cortable,wincol,winrow,m,n)<<endl;//myfile << "Writing this to a file.\n";
-                    /*max_coef_point[c][r].first=m;*/
-                   /* max_coef_point[c][r].second=n;*/
+                    max_coef_point[r][c].first=n;//row index
+                    max_coef_point[r][c].second=m;//column index
                     myfile<<m<<" "<<n<<endl;
                 }
                 if((r-32)<=0&&(r+32)>=totrow2)//bad image!!
@@ -208,20 +213,20 @@ void piv_2d(cv::Mat image1, cv::Mat image2,vector< vector <pair<int,int> > > &ma
                             if((sd1!=0)&&(sd2!=0))
                             {
                                 //Mat image1,Mat image2,int avg1,int avg2,const int subcol,const int subrow,const int x2,const int y2,const int c,const int r
-                                cortable[x][y]= cor_coeff(image1,image2,avg1,avg2,subcol,subrow,x,y,c,r)/(sd1*sd2)/(subrow*subcol);//normalized correlation coefficient
+                                cortable[y][x]= cor_coeff(image1,image2,avg1,avg2,subcol,subrow,x,y,c,r)/(sd1*sd2)/(subrow*subcol);//normalized correlation coefficient
                             }
                             else
                             {
-                                cortable[x][y]= 0;
+                                cortable[y][x]= 0;
                                 myfile<<"zero SD"<<endl;
                             }
-                            //myfile<<cortable[x][y]<<endl;
+                            //myfile<<cortable[y][x]<<endl;
                         }
                     }
 
                     myfile << "max value = " <<max_coef(cortable,wincol,winrow,m,n)<<endl;//myfile << "Writing this to a file.\n";
-                    /*max_coef_point[c][r].first=m;*/
-                   /* max_coef_point[c][r].second=n;*/
+                    max_coef_point[r][c].first=n;//row index
+                    max_coef_point[r][c].second=m;//column index
                     myfile<<m<<" "<<n<<endl;
                 }
                 if((r+32)>totrow2)
@@ -234,20 +239,20 @@ void piv_2d(cv::Mat image1, cv::Mat image2,vector< vector <pair<int,int> > > &ma
                             sd2=sd(subcol+x,subrow+y,image2,x,y);
                             if((sd1!=0)&&(sd2!=0))
                             {
-                                cortable[x][y]= cor_coeff(image1,image2,avg1,avg2,subcol,subrow,x,y,c,r)/(sd1*sd2)/(subrow*subcol);//normalized correlation coefficient
+                                cortable[y][x]= cor_coeff(image1,image2,avg1,avg2,subcol,subrow,x,y,c,r)/(sd1*sd2)/(subrow*subcol);//normalized correlation coefficient
                             }
                             else
                             {
-                                cortable[x][y]= 0;
+                                cortable[y][x]= 0;
                                 myfile<<"zero SD"<<endl;
                             }
-                            //myfile<<cortable[x][y]<<endl;
+                            //myfile<<cortable[y][x]<<endl;
                         }
                     }
 
                     myfile << "max value = " <<max_coef(cortable,wincol,winrow,m,n)<<endl;//myfile << "Writing this to a file.\n";
-                    /*max_coef_point[c][r].first=m;*/
-                   /* max_coef_point[c][r].second=n;*/
+                    max_coef_point[r][c].first=n;//row index
+                    max_coef_point[r][c].second=m;//column index
                     myfile<<m<<" "<<n<<endl;
                 }
                 if((r-32)<0)
@@ -260,20 +265,20 @@ void piv_2d(cv::Mat image1, cv::Mat image2,vector< vector <pair<int,int> > > &ma
                             sd2=sd(subcol+x,subrow+y,image2,x,y);
                             if((sd1!=0)&&(sd2!=0))
                             {
-                                cortable[x][y]= cor_coeff(image1,image2,avg1,avg2,subcol,subrow,x,y,c,r)/(sd1*sd2)/(subrow*subcol);//normalized correlation coefficient
+                                cortable[y][x]= cor_coeff(image1,image2,avg1,avg2,subcol,subrow,x,y,c,r)/(sd1*sd2)/(subrow*subcol);//normalized correlation coefficient
                             }
                             else
                             {
-                                cortable[x][y]= 0;
+                                cortable[y][x]= 0;
                                 myfile<<"zero SD"<<endl;
                             }
-                            //myfile<<cortable[x][y]<<endl;
+                            //myfile<<cortable[y][x]<<endl;
                         }
                     }
 
                     myfile << "max value = " <<max_coef(cortable,wincol,winrow,m,n)<<endl;//myfile << "Writing this to a file.\n";
-                    /*max_coef_point[c][r].first=m;*/
-                   /* max_coef_point[c][r].second=n;*/
+                    max_coef_point[r][c].first=n;//row index
+                    max_coef_point[r][c].second=m;//column index
                     myfile<<m<<" "<<n<<endl;
                 }
                 if((r-32)<=0&&(r+32)>=totrow2)
@@ -294,20 +299,20 @@ void piv_2d(cv::Mat image1, cv::Mat image2,vector< vector <pair<int,int> > > &ma
                             sd2=sd(subcol+x,subrow+y,image2,x,y);
                             if((sd1!=0)&&(sd2!=0))
                             {
-                                cortable[x][y]= cor_coeff(image1,image2,avg1,avg2,subcol,subrow,x,y,c,r)/(sd1*sd2)/(subrow*subcol);//normalized correlation coefficient
+                                cortable[y][x]= cor_coeff(image1,image2,avg1,avg2,subcol,subrow,x,y,c,r)/(sd1*sd2)/(subrow*subcol);//normalized correlation coefficient
                             }
                             else
                             {
-                                cortable[x][y]= 0;
+                                cortable[y][x]= 0;
                                 myfile<<"zero SD"<<endl;
                             }
-                            //myfile<<cortable[x][y]<<endl;
+                            //myfile<<cortable[y][x]<<endl;
                         }
                     }
 
                     myfile << "max value = " <<max_coef(cortable,wincol,winrow,m,n)<<endl;//myfile << "Writing this to a file.\n";
-                    /*max_coef_point[c][r].first=m;*/
-                   /* max_coef_point[c][r].second=n;*/
+                    max_coef_point[r][c].first=n;//row index
+                    max_coef_point[r][c].second=m;//column index
                     myfile<<m<<" "<<n<<endl;
                 }
                 if((r+32)>totrow2)
@@ -320,20 +325,20 @@ void piv_2d(cv::Mat image1, cv::Mat image2,vector< vector <pair<int,int> > > &ma
                             sd2=sd(subcol+x,subrow+y,image2,x,y);
                             if((sd1!=0)&&(sd2!=0))
                             {
-                                cortable[x][y]= cor_coeff(image1,image2,avg1,avg2,subcol,subrow,x,y,c,r)/(sd1*sd2)/(subrow*subcol);//normalized correlation coefficient
+                                cortable[y][x]= cor_coeff(image1,image2,avg1,avg2,subcol,subrow,x,y,c,r)/(sd1*sd2)/(subrow*subcol);//normalized correlation coefficient
                             }
                             else
                             {
-                                cortable[x][y]= 0;
+                                cortable[y][x]= 0;
                                 myfile<<"zero SD"<<endl;
                             }
-                            //myfile<<cortable[x][y]<<endl;
+                            //myfile<<cortable[y][x]<<endl;
                         }
                     }
 
                     myfile << "max value = " <<max_coef(cortable,wincol,winrow,m,n)<<endl;//myfile << "Writing this to a file.\n";
-                    /*max_coef_point[c][r].first=m;*/
-                   /* max_coef_point[c][r].second=n;*/
+                    max_coef_point[r][c].first=n;//row index
+                    max_coef_point[r][c].second=m;//column index
                     myfile<<m<<" "<<n<<endl;
                 }
                 if((r-32)<0)
@@ -347,20 +352,20 @@ void piv_2d(cv::Mat image1, cv::Mat image2,vector< vector <pair<int,int> > > &ma
                             //myfile<<avg2<<" * "<<sd2<<endl;
                             if((sd1!=0)&&(sd2!=0))
                             {
-                                cortable[x][y]= cor_coeff(image1,image2,avg1,avg2,subcol,subrow,x,y,c,r)/(sd1*sd2)/(subrow*subcol);//normalized correlation coefficient
+                                cortable[y][x]= cor_coeff(image1,image2,avg1,avg2,subcol,subrow,x,y,c,r)/(sd1*sd2)/(subrow*subcol);//normalized correlation coefficient
                             }
                             else
                             {
-                                cortable[x][y]= 0;
+                                cortable[y][x]= 0;
                                 myfile<<"zero SD"<<endl;
                             }
-                            //myfile<<cortable[x][y]<<endl;
+                            //myfile<<cortable[y][x]<<endl;
                         }
                     }
 
                     myfile << "max value = " <<max_coef(cortable,wincol,winrow,m,n)<<endl;//myfile << "Writing this to a file.\n";
-                   /*max_coef_point[c][r].first=m;*/
-                   /*max_coef_point[c][r].second=n;*/
+                    max_coef_point[r][c].first=n;//row index
+                    max_coef_point[r][c].second=m;//column index
                     myfile<<m<<" "<<n<<endl;
                 }
                 if((r-32)<=0&&(r+32)>=totrow2)
@@ -374,7 +379,7 @@ void piv_2d(cv::Mat image1, cv::Mat image2,vector< vector <pair<int,int> > > &ma
             }
         }
     }
-/*    max_points=max_coef_point;*/
+    max_points=max_coef_point;
     myfile.close();
 }
 //core function of 2D_PIV

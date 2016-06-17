@@ -36,9 +36,9 @@ int main() //calculation of correlation coefficient
     /**************Drawing Vectors in Image**************/
     image3=image1;
     cv::namedWindow( "Display window", CV_WINDOW_AUTOSIZE );
-    for(int c=0; c<totcols1-wincol; c+=16)
+    for(int c=0; c<totcols1-wincol/2; c+=16)
     {
-        for(int r=0; r<totrows1-winrow; r+=16)
+        for(int r=0; r<totrows1-winrow/2; r+=16)
         {
             Point pt1 = Point(c+8,r+8);//here (x,y)=(col,row) point in cartesian coordiante system
             Point pt2 = Point(max_coef_point[r][c].second+8,max_coef_point[r][c].first+8);
@@ -48,6 +48,7 @@ int main() //calculation of correlation coefficient
     }
     // or NORMAL create a window for display.
     cv::imshow( "Display window",img);
+    imwrite("result_img.tif",img);
     waitKey(0);// wait for a keystroke in the window
     return 0;
 }

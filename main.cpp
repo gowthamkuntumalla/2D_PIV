@@ -4,8 +4,12 @@
 #include <vector>
 #include "2dalgo.hpp"
 
-//mhkhaniitb@gmail.com PhD, advisor
-//gowthamkuntumalla@gmail.com,krishnasandeepbhogaraju@gmail.com
+/** This is "2D Particle image velocimetry, Version 1" Programmed by Gowtham Kuntumalla **/
+/** Debugged and tested by Krishnasandeep Bhogaraju,Gowtham Kuntumalla **/
+
+/**mhkhaniitb@gmail.com {PhD}, advisor**/
+/**gowthamkuntumalla@gmail.com,krishnasandeepbhogaraju@gmail.com**/
+/** Output data file consists of initial point(x1,y1) final point(x2,y2) **/
 
 /*********************** Main Function ***********************/
 
@@ -22,7 +26,7 @@ int main() //calculation of correlation coefficient
 
     /**************Read Images**************/
     image1 = cv::imread("image1.tif", 0);// read the file into gray scale(0)
-    image2 = cv::imread("image2.tif", 0);//size: 800x600 pixels here
+    image2 = cv::imread("image2.tif", 0);//
     //after successfully reading images
     int totrows1= image1.rows,totcols1=image1.cols; //opencv functions to get the rows and columns of image.
     int totrows2= image2.rows,totcols2=image2.cols;

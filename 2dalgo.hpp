@@ -8,6 +8,7 @@ using namespace std;
 /** <i><x><col> are equivalent and similarly <j><y><row> are equivalent**/
 /** convention : (col,row), (x,y) order is followed**/
 /** cartesian coordinates (c,r) i.e., the top left corner represents the address of subwindow**/
+
 /*********************** Auxiliary Functions ***********************/
 double avg(const int x2,const int y2, Mat image,const int x1,const int y1)//average of sub matrix
 {
@@ -56,7 +57,7 @@ double cor_coeff(Mat image1,Mat image2,double avg1,double avg2,const int subcol,
     return val;
 
 }
-double max_coef(vector< vector<double> > t,const int wincol,const int winrow,int& max_x,int& max_y )
+void max_coef(vector< vector<double> > t,const int wincol,const int winrow,int& max_x,int& max_y )
 {
     int a=-1;// all intensities are greater than this
     int m=max_x,n=max_y;
@@ -72,7 +73,7 @@ double max_coef(vector< vector<double> > t,const int wincol,const int winrow,int
             }
         }
     }
-    return a;
+    return;
 }
 
 /********* function *********/
@@ -102,7 +103,7 @@ void piv_2d(cv::Mat image1, cv::Mat image2,vector< vector <pair<int,int> > > &ma
     {
         for(int r=0; r<(totrow1-winrow/2); r+=16)
         {
-            myfile<<"**"<<c<<" "<<r<<endl;
+            myfile<<c<<" "<<r<<" ";//initial point (x,y)
             int m=0,n=0;//the max coefficent point
 
             //cortable.resize(totcol1,vector<double>(totrow1,initial_value));//initializing the vector
@@ -135,10 +136,10 @@ void piv_2d(cv::Mat image1, cv::Mat image2,vector< vector <pair<int,int> > > &ma
                         }
                     }
 
-                    myfile << "max value = " <<max_coef(cortable,wincol,winrow,m,n)<<endl;//myfile << "Writing this to a file.\n";
+                    max_coef(cortable,wincol,winrow,m,n);//myfile << "Writing this to a file.\n";
                     max_coef_point[r][c].first=n;//row index
                     max_coef_point[r][c].second=m;//column index
-                    myfile<<m<<" "<<n<<endl;
+                    myfile<<m<<" "<<n<<endl;//final point (x,y)
                 }
                 if((r+32)>totrow2)//bottom border
                 {
@@ -162,10 +163,10 @@ void piv_2d(cv::Mat image1, cv::Mat image2,vector< vector <pair<int,int> > > &ma
                         }
                     }
 
-                    myfile << "max value = " <<max_coef(cortable,wincol,winrow,m,n)<<endl;//myfile << "Writing this to a file.\n";
+                    max_coef(cortable,wincol,winrow,m,n);//myfile << "Writing this to a file.\n";
                     max_coef_point[r][c].first=n;//row index
                     max_coef_point[r][c].second=m;//column index
-                    myfile<<m<<" "<<n<<endl;
+                    myfile<<m<<" "<<n<<endl;//final point (x,y)
                 }
                 if((r-32)<0)//top border
                 {
@@ -189,10 +190,10 @@ void piv_2d(cv::Mat image1, cv::Mat image2,vector< vector <pair<int,int> > > &ma
                         }
                     }
 
-                    myfile << "max value = " <<max_coef(cortable,wincol,winrow,m,n)<<endl;//myfile << "Writing this to a file.\n";
+                    max_coef(cortable,wincol,winrow,m,n);//myfile << "Writing this to a file.\n";
                     max_coef_point[r][c].first=n;//row index
                     max_coef_point[r][c].second=m;//column index
-                    myfile<<m<<" "<<n<<endl;
+                    myfile<<m<<" "<<n<<endl;//final point (x,y)
                 }
                 if((r-32)<=0&&(r+32)>=totrow2)//bad image!!
                 {
@@ -224,10 +225,10 @@ void piv_2d(cv::Mat image1, cv::Mat image2,vector< vector <pair<int,int> > > &ma
                         }
                     }
 
-                    myfile << "max value = " <<max_coef(cortable,wincol,winrow,m,n)<<endl;//myfile << "Writing this to a file.\n";
+                    max_coef(cortable,wincol,winrow,m,n);//myfile << "Writing this to a file.\n";
                     max_coef_point[r][c].first=n;//row index
                     max_coef_point[r][c].second=m;//column index
-                    myfile<<m<<" "<<n<<endl;
+                    myfile<<m<<" "<<n<<endl;//final point (x,y)
                 }
                 if((r+32)>totrow2)
                 {
@@ -250,10 +251,10 @@ void piv_2d(cv::Mat image1, cv::Mat image2,vector< vector <pair<int,int> > > &ma
                         }
                     }
 
-                    myfile << "max value = " <<max_coef(cortable,wincol,winrow,m,n)<<endl;//myfile << "Writing this to a file.\n";
+                    max_coef(cortable,wincol,winrow,m,n);//myfile << "Writing this to a file.\n";
                     max_coef_point[r][c].first=n;//row index
                     max_coef_point[r][c].second=m;//column index
-                    myfile<<m<<" "<<n<<endl;
+                    myfile<<m<<" "<<n<<endl;//final point (x,y)
                 }
                 if((r-32)<0)
                 {
@@ -276,10 +277,10 @@ void piv_2d(cv::Mat image1, cv::Mat image2,vector< vector <pair<int,int> > > &ma
                         }
                     }
 
-                    myfile << "max value = " <<max_coef(cortable,wincol,winrow,m,n)<<endl;//myfile << "Writing this to a file.\n";
+                    max_coef(cortable,wincol,winrow,m,n);//myfile << "Writing this to a file.\n";
                     max_coef_point[r][c].first=n;//row index
                     max_coef_point[r][c].second=m;//column index
-                    myfile<<m<<" "<<n<<endl;
+                    myfile<<m<<" "<<n<<endl;//final point (x,y)
                 }
                 if((r-32)<=0&&(r+32)>=totrow2)
                 {
@@ -310,10 +311,10 @@ void piv_2d(cv::Mat image1, cv::Mat image2,vector< vector <pair<int,int> > > &ma
                         }
                     }
 
-                    myfile << "max value = " <<max_coef(cortable,wincol,winrow,m,n)<<endl;//myfile << "Writing this to a file.\n";
+                    max_coef(cortable,wincol,winrow,m,n);//myfile << "Writing this to a file.\n";
                     max_coef_point[r][c].first=n;//row index
                     max_coef_point[r][c].second=m;//column index
-                    myfile<<m<<" "<<n<<endl;
+                    myfile<<m<<" "<<n<<endl;//final point (x,y)
                 }
                 if((r+32)>totrow2)
                 {
@@ -336,10 +337,10 @@ void piv_2d(cv::Mat image1, cv::Mat image2,vector< vector <pair<int,int> > > &ma
                         }
                     }
 
-                    myfile << "max value = " <<max_coef(cortable,wincol,winrow,m,n)<<endl;//myfile << "Writing this to a file.\n";
+                    max_coef(cortable,wincol,winrow,m,n);//myfile << "Writing this to a file.\n";
                     max_coef_point[r][c].first=n;//row index
                     max_coef_point[r][c].second=m;//column index
-                    myfile<<m<<" "<<n<<endl;
+                    myfile<<m<<" "<<n<<endl;//final point (x,y)
                 }
                 if((r-32)<0)
                 {
@@ -363,10 +364,10 @@ void piv_2d(cv::Mat image1, cv::Mat image2,vector< vector <pair<int,int> > > &ma
                         }
                     }
 
-                    myfile << "max value = " <<max_coef(cortable,wincol,winrow,m,n)<<endl;//myfile << "Writing this to a file.\n";
+                    max_coef(cortable,wincol,winrow,m,n);//myfile << "Writing this to a file.\n";
                     max_coef_point[r][c].first=n;//row index
                     max_coef_point[r][c].second=m;//column index
-                    myfile<<m<<" "<<n<<endl;
+                    myfile<<m<<" "<<n<<endl;//final point (x,y)
                 }
                 if((r-32)<=0&&(r+32)>=totrow2)
                 {

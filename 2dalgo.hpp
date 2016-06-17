@@ -93,14 +93,14 @@ void piv_2d(cv::Mat image1, cv::Mat image2,vector< vector <pair<int,int> > > &ma
     // cout<< totrow1<<" "<<totcol1<<" "<<totrow2<<" "<<totcol2;
 
     vector< vector <pair<int,int> > > max_coef_point;//  vector for storing of max coeff coordinates in image 2 corresponding to image 1
-    max_coef_point.resize(totrow1-winrow,vector<pair<int,int> >(totcol1-wincol));//initializing the vector
+    max_coef_point.resize(totrow1-winrow/2,vector<pair<int,int> >(totcol1-wincol/2));//initializing the vector
 
     /******* Start Computing *******/
     myfile.open ("data.txt");
     vector< vector<double> > cortable;// 2D array of correlation at various (x.y)
-    for(int c=0; c<(totcol1-wincol); c+=16)
+    for(int c=0; c<(totcol1-wincol/2); c+=16)
     {
-        for(int r=0; r<(totrow1-winrow); r+=16)
+        for(int r=0; r<(totrow1-winrow/2); r+=16)
         {
             myfile<<"**"<<c<<" "<<r<<endl;
             int m=0,n=0;//the max coefficent point
